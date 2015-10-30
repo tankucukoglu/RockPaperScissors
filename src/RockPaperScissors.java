@@ -32,6 +32,16 @@ public class RockPaperScissors{
         clientSocket = new Socket(address, port);
         System.out.println("Connection established");
     }
+    public void read() throws IOException{
+        
+        String userInput;
+        BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        
+        System.out.println("Response from server: ");
+        while((userInput = input.readLine()) != null){
+            System.out.println(userInput);
+        }
+    }
     
     private void play(Socket client) throws IOException{
         
@@ -64,6 +74,7 @@ public class RockPaperScissors{
                 RockPaperScissors rpsClient = new RockPaperScissors(ipAddress, portNumber);
                 
                 rpsClient.connect();
+                rpsClient.read();
             }catch(UnknownHostException e){
                 System.out.println(e.getMessage());
             }catch(IOException ex){
@@ -94,6 +105,5 @@ public class RockPaperScissors{
         else{
             System.out.println("Invalid arguments!");
         }
-        
     }
 }
