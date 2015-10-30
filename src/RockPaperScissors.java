@@ -33,14 +33,33 @@ public class RockPaperScissors{
     
     public static void main(String[] args){
         
-        int portNumber = 8080;
+        String ipAddress;
+        int portNumber;
         
-        try{
-            RockPaperScissors rps = new RockPaperScissors(portNumber);
+        if(args.length == 2){
             
-            rps.start();
-        }catch(IOException e){
-            System.out.println(e.getMessage());
+            // client
+            ipAddress = args[0];
+            portNumber = Integer.parseInt(args[1]);
+            
+            // client code ********************************
         }
+        else if(args.length == 1){
+            
+            // server
+            portNumber = Integer.parseInt(args[0]);
+            
+            try{
+                RockPaperScissors rps = new RockPaperScissors(portNumber);
+
+                rps.start();
+            }catch(IOException e){
+                System.out.println(e.getMessage());
+            }
+        }
+        else{
+            System.out.println("Missing arguments!");
+        }
+        
     }
 }
