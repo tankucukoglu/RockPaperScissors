@@ -47,7 +47,7 @@ public class RockPaperScissors{
         
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         
-        writer.write("Client connected to server");
+        writer.write("Client connected to server.");
         writer.flush();
         writer.close();
         
