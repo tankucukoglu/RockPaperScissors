@@ -1,84 +1,197 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class RockPaperScissors{
     
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private final int port;
-    private final InetAddress address;
+    static void startServer(int portNumber){
+        
+        while(true){
+        	
+	        int tie = 0, client = 0, server = 0;
+	        int rounds = 0;
+        
+	        try{
+	        	
+	            ServerSocket serverSocket = new ServerSocket(portNumber); 
+	            Socket socket = serverSocket.accept();
+            
+	            BufferedReader ed = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	            String tmp = ed.readLine();
+	            System.out.println("Server Recieved :" + tmp);
+	            
+	            // Receive message (SHAPES) and parse
+	            String delims = "/";
+	            String[] tokens = tmp.split(delims);
+	            rounds = Integer.parseInt(tokens[0]);
+            
+	            String[] userEntries = tmp.split(delims);
+	            for(int i = 1; i < (rounds+1); i++){
+	                userEntries[i - 1] = tokens[i];
+	            }
+            
+            
+	            // Creates random SHAPES for server and stores them in an array
+	            Random rg = new Random();
+	            int[] randomArray = new int [rounds];
+	            for(int i = 0; i < rounds; i++){
+	                randomArray[i] = rg.nextInt(3) + 1;
+	            }
+            
+	            String[] programEntries = new String[rounds];
+	            for(int i = 0; i < rounds; i++){
+	                if(randomArray[i] == 1)
+	                    programEntries[i] = "rock";
+	                else if (randomArray[i] == 2)
+	                    programEntries[i] = "paper";
+	                else if (randomArray[i] == 3)
+	                    programEntries[i] = "scissors";
+	            }
+	            /* ------------------------------------------------------------ */
+	            
+	            /* Compares the server array elements w/ client array elements
+	               Keeps the results in an array and increases one of rock, paper or scissors */
+	            
+	            String[] resultArray = new String[rounds];
+            
+	            for(int i = 0; i < rounds; i++){
+	            	
+	                if(userEntries[i].toLowerCase().equals("rock")){
+	                    if(programEntries[i].equals("rock")){
+	                        resultArray[i] = "(tie)";
+	                        tie++;
+	                    }
+	                    else if(programEntries[i].equals("scissors")){
+	                        resultArray[i] = "(client wins)";
+	                        client++;
+	                    }
+	                    else if(programEntries[i].equals("paper")){
+	                        resultArray[i] = "(server wins)";
+	                        server++;
+	                    }
+	                }
+	                else if(userEntries[i].toLowerCase().equals("scissors")){
+	                    if(programEntries[i].equals("rock")){
+	                        resultArray[i] = "(server wins)";
+	                        server++;
+	                    }
+	                    else if(programEntries[i].equals("scissors")){
+	                        resultArray[i] = "(tie)";
+	                        tie++;
+	                    }
+	                    else if(programEntries[i].equals("paper")){
+	                        resultArray[i] = "(client wins)";
+	                        client++;
+	                    }
+	                }
+	                else if(userEntries[i].toLowerCase().equals("paper")){
+	                    if(programEntries[i].equals("rock")){
+	                        resultArray[i] = "(client wins)";
+	                        client++;
+	                    }
+	                    else if(programEntries[i].equals("scissors")){
+	                        resultArray[i] = "(server wins)";
+	                        server++;
+	                    }
+	                    else if(programEntries[i].equals("paper")){
+	                        resultArray[i] = "(tie)";
+	                        tie++;
+	                    }
+	                }
+	            }
+            
+	            /* ------------------------------------------------------------ */
+	            
+	            PrintStream pr = new PrintStream(socket.getOutputStream());
+	            
+	            // Prints the (random) choices of server and who wins
+	            String msgToClient = "";
+	            for(int i = 0; i < rounds; i++){
+	                msgToClient += ("Round-" + (i + 1) + ":" + "server chooses " + programEntries[i] + " " + resultArray[i] + "/");
+	            }
+	            msgToClient += ("Client: " + client + "/" + "Tie: " + tie + "/" + "Server: " + server);
+	            pr.println(msgToClient);
+	            
+	            serverSocket.close();
+	            
+	        }catch(Exception ex){
+	        	System.out.println(ex.getMessage());
+	        	
+	        }
+	    }
+    }
+    /* ------------------------------------------ */
     
-    public RockPaperScissors(InetAddress address, int port){
-        this.address = address;
-        this.port = port;
-    }
+    static void startClient(InetAddress ipAddress, int portNumber){
     
-    private void openConnection() throws IOException{
+        Scanner scanner = new Scanner(System.in);
+        int rounds = 0;
+        String roundNumber ="a";
         
-        System.out.println("Starting the server at port: " + port);
-        System.out.println("Server IP Address: " + address.toString());
         
-        serverSocket = new ServerSocket(port, 50, address); // default backlog is 50
-        
-        System.out.println("Waiting for client...");
-        
-        serverSocket.accept();
-        
-        // listening for connection...
-    }
-    private void clientConnect() throws UnknownHostException, IOException{
-        
-        System.out.println("Attempting to connect to: " + address.toString() + ":" + port);
-        
-        clientSocket = new Socket(address, port);
-        
-        System.out.println("Connection established.");
-        
-        // do read and write
-        clientWrite(clientSocket);
-        //serverRead();
-        //serverWrite(clientSocket);
-        clientRead();
-    }
-    
-    private void clientWrite(Socket socket) throws IOException{
-        
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        
-        writer.write("Client to server");
-        writer.flush();
-        writer.close();
-    }
-    private void serverRead() throws IOException{
-        
-        String userInput;
-        BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        
-        System.out.println("Response from client: ");
-        while((userInput = input.readLine()) != null){
-            System.out.println(userInput);
+        while(!roundNumber.toLowerCase().equals("q")){
+	        try
+	        {
+	            Socket sock = new Socket(ipAddress, portNumber);
+	            PrintStream pr = new PrintStream(sock.getOutputStream());
+	            
+	            System.out.println("Enter the number of rounds (Press Q to quit): ");
+	            
+	            roundNumber = scanner.nextLine();
+	            
+	            if(roundNumber.toLowerCase().equals("q")){
+	                System.exit(0);
+	            }else{
+	                rounds = Integer.parseInt(roundNumber);
+	                if(rounds == 0){
+	                    System.out.println("You cannot enter 0. ");
+	                }
+	            }
+	            
+	            // Gets shapes from the user and stores them in an array
+	            String[] userEntries = new String[rounds];
+	            for(int i = 0; i < rounds; i++){
+	                System.out.print("Round-" + (i + 1) + ": ");
+	                userEntries[i] = scanner.nextLine();
+	            }
+	            
+	            // Message to server
+	            String msgToServer = roundNumber;
+	            for(int i = 0; i < rounds; i++){
+	                msgToServer += '/' + userEntries[i];
+	            }
+	            
+	            InputStream stream = new ByteArrayInputStream(msgToServer.getBytes("UTF-8"));
+	            
+	            InputStreamReader rd = new InputStreamReader(stream);
+	            BufferedReader ed = new BufferedReader(rd);
+	            
+	            String temp = ed.readLine();
+	            
+	            pr.println(temp);
+	            
+	            // Getting the result from server
+	            BufferedReader gt = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+	            String tm = gt.readLine();
+	            String[] tokens = tm.split("/");
+	            
+	            for(String t : tokens){
+	            	System.out.println(t);
+	            }
+	            
+	            sock.close();
+	            
+	        }
+	        
+	        catch(Exception e){
+	            System.out.println(e.getMessage());
+	        }
         }
+        
+        scanner.close();
     }
-    private void serverWrite(Socket socket) throws IOException{
-        
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        
-        writer.write("Server to client");
-        writer.flush();
-        writer.close();
-        
-    }
-    private void clientRead() throws IOException{
-        
-        String userInput;
-        BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        
-        System.out.println("Response from server: ");
-        while((userInput = input.readLine()) != null){
-            System.out.println(userInput);
-        }
-    }
-    
+
+    /*-------------------- MAIN METHOD --------------------*/
     public static void main(String[] args){
         
         InetAddress ipAddress;
@@ -86,10 +199,10 @@ public class RockPaperScissors{
         
         if(args.length == 2){
             
-             // client
+            // Start Client
             
             try{
-               ipAddress = InetAddress.getByName(args[0]);
+                ipAddress = InetAddress.getByName(args[0]);
             }catch(UnknownHostException e){
                 System.out.println(e.getMessage());
                 ipAddress = null;
@@ -97,43 +210,23 @@ public class RockPaperScissors{
             portNumber = Integer.parseInt(args[1]);
             
             try{
-                RockPaperScissors rpsClient = new RockPaperScissors(ipAddress, portNumber);
+                startClient(ipAddress, portNumber);
                 
-                rpsClient.clientConnect();
-                
-                // loop
-                rpsClient.clientWrite(null);
-                rpsClient.clientRead();
-                
-            }catch(UnknownHostException e){
+            }catch(Exception e){
                 System.out.println(e.getMessage());
-            }catch(IOException ex){
-                System.out.println(ex.getMessage());
             }
             
         }
         else if(args.length == 1){
             
-            // server
+            // Start Server
             
             portNumber = Integer.parseInt(args[0]);
-            try{
-                ipAddress = InetAddress.getByName("127.0.0.1");
-            }catch(UnknownHostException e){
-                System.out.println(e.getMessage());
-                ipAddress = null;
-            }
             
             try{
-                RockPaperScissors rpsServer = new RockPaperScissors(ipAddress, portNumber);
+                startServer(portNumber);
 
-                rpsServer.openConnection();
-                
-                // loop
-                rpsServer.serverRead();
-                rpsServer.serverWrite(null);
-                
-            }catch(IOException e){
+            }catch(Exception e){
                 System.out.println(e.getMessage());
             }
         }
