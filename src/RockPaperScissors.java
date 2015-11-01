@@ -25,13 +25,13 @@ public class RockPaperScissors{
             
 	            BufferedReader ed = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	            String tmp = ed.readLine();
-	            System.out.println("Server Recieved :" + tmp);
+	            //System.out.println("Server Recieved :" + tmp);
 	            
 	            // Receive message (SHAPES) and parse
 	            String delims = "/";
 	            String[] tokens = tmp.split(delims);
 	            rounds = Integer.parseInt(tokens[0]);
-            
+                System.out.println("Client has sent " + rounds + " shapes...");
 	            String[] userEntries = tmp.split(delims);
 	            for(int i = 1; i < (rounds + 1); i++){
 	                userEntries[i - 1] = tokens[i];
@@ -44,7 +44,7 @@ public class RockPaperScissors{
 	            for(int i = 0; i < rounds; i++){
 	                randomArray[i] = rg.nextInt(3) + 1;
 	            }
-            
+                
 	            String[] programEntries = new String[rounds];
 	            for(int i = 0; i < rounds; i++){
 	                if(randomArray[i] == 1)
@@ -54,6 +54,9 @@ public class RockPaperScissors{
 	                else if (randomArray[i] == 3)
 	                    programEntries[i] = "scissors";
 	            }
+                
+                System.out.println("Shapes are chosen...");
+
 	            /* ------------------------------------------------------------ */
 	            
 	            /* Compares the server array elements w/ client array elements
@@ -108,7 +111,13 @@ public class RockPaperScissors{
 	            }
             
 	            /* ------------------------------------------------------------ */
-	            
+            
+                System.out.println("Results are as follows: ");
+                for(int i = 0; i < rounds; i++){
+                    System.out.println("Round-" + (i + 1) + ": " + "server chooses " + programEntries[i] + " " + resultArray[i]);
+                }
+                System.out.println("Client: " + client + "\n" + "Tie: " + tie + "\n" + "Server: " + server);
+                
 	            PrintStream pr = new PrintStream(socket.getOutputStream());
 	            
 	            // Prints the (random) choices of server and who wins
